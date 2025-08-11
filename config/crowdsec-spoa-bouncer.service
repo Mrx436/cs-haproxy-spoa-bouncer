@@ -1,16 +1,46 @@
-[Unit]
-Description=The haproxy spoa bouncer for CrowdSec
-After=syslog.target network.target remote-fs.target nss-lookup.target crowdsec.service
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2009-2019 OpenWrt.org
 
-[Service]
-Type=notify
-ExecStart=${BIN} -c ${CFG}/crowdsec-spoa-bouncer.yaml
-ExecStartPre=${BIN} -c ${CFG}/crowdsec-spoa-bouncer.yaml -t
-ExecStartPre=/bin/mkdir -p /run/crowdsec-spoa
-ExecStartPre=/bin/chown crowdsec-spoa:crowdsec-spoa /run/crowdsec-spoa
-ExecStartPost=/bin/sleep 0.1
-Restart=always
-RestartSec=10
+START=99
+STOP=80
 
-[Install]
-WantedBy=multi-user.target
+USE_PROCD=1
+
+HAPROXY_BIN="/usr/sbin/haproxy"
+HAPROXY_CONFIG="/etc/haproxy.cfg"
+
+start_service() {
+        procd_open_instance
+        procd_set_param respawn
+        procd_set_param file "$HAPROXY_CONFIG"
+        procd_set_param reload_signal USR2
+        procd_set_param command $HAPROXY_BIN -q -W -db -f "$HAPROXY_CONFIG"
+        procd_close_instance
+}
+
+service_triggers() {
+        procd_add_raw_trigger acme.renew 5000 /etc/init.d/haproxy reload
+}
+
+extra_command "check" "Check haproxy config"
+check() {
+        $HAPROXY_BIN -c -q -V -f $HAPROXY_CONFIG
+}
+
+
+#[Unit]
+#Description=The haproxy spoa bouncer for CrowdSec
+#After=syslog.target network.target remote-fs.target nss-lookup.target crowdsec.service
+
+#[Service]
+#Type=notify
+#ExecStart=${BIN} -c ${CFG}/crowdsec-spoa-bouncer.yaml
+#ExecStartPre=${BIN} -c ${CFG}/crowdsec-spoa-bouncer.yaml -t
+#ExecStartPre=/bin/mkdir -p /run/crowdsec-spoa
+#ExecStartPre=/bin/chown crowdsec-spoa:crowdsec-spoa /run/crowdsec-spoa
+#ExecStartPost=/bin/sleep 0.1
+#Restart=always
+#RestartSec=10
+
+#[Install]
+#WantedBy=multi-user.target
