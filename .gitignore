@@ -16,9 +16,9 @@ __pycache__/
 venv/
 
 # built by make
-/crowdsec-spoa-bouncer
-/crowdsec-spoa-bouncer-*
-/crowdsec-spoa-bouncer.tgz
+#/crowdsec-spoa-bouncer
+#/crowdsec-spoa-bouncer-*
+#/crowdsec-spoa-bouncer.tgz
 
 # built by dpkg-buildpackage
 /debian/crowdsec-spoa-bouncer
